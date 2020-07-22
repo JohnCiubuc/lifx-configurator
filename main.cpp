@@ -66,10 +66,8 @@ int main(int argc, char ** argv)
     std::string brightnessLevel = flipHex(n2hexstr(65535,4));
 
     // Parser:
-    if(argc > 1 && argc % 2 ==1)
+    if(argc > 1 && argc % 2 == 1)
     {
-        argc--;
-
         // Gets custom brightness value
         for(int argi = 1; argi < argc; argi += 2)
         {
@@ -83,9 +81,7 @@ int main(int argc, char ** argv)
 
                 brightnessLevel = flipHex(n2hexstr(bLevel,4));
             }
-
         }
-
         
         std::string packet = buildHeader();
 
