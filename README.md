@@ -9,7 +9,7 @@ Currently, only changing the brightness of the bulbs is allowed (I have only a p
 1. run `cmake . && make`
 
 # Usage Instructions
-![instructions]((https://raw.githubusercontent.com/JohnCiubuc/lifx-configurator/master/Images/usage.png)
+![instructions](https://raw.githubusercontent.com/JohnCiubuc/lifx-configurator/master/Images/usage.png)
 
 # Using the application 
 
