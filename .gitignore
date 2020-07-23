@@ -16,6 +16,9 @@
 *.dylib
 *.dll
 
+# astyle
+*.orig
+
 # Fortran module files
 *.mod
 *.smod
@@ -39,3 +42,6 @@ Makefile
 
 #bin
 lifx-configurator
+
+#misc
+test
