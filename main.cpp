@@ -1,6 +1,7 @@
 #include <iostream>
 
 
+
 // Number to hex string
 template <typename I> std::string n2hexstr(I w, size_t hex_len = sizeof(I)<<1)
 {
@@ -53,6 +54,8 @@ enum messages
 
 struct payload_s
 {
+    std::string ip;
+    std::string port = "56700";
 
     std::string brightnessLevel;
     std::string powerLevel;
@@ -98,8 +101,8 @@ std::string buildPayload(messages PacketType, payload_s Payload)
         payload += Payload.powerLevel;
         break;
     }
-        //Duration
-        payload += Payload.duration;
+    //Duration
+    payload += Payload.duration;
 
     std::string packet;
     // Builds packet
@@ -112,9 +115,11 @@ std::string buildPayload(messages PacketType, payload_s Payload)
 void lifxHelpMenu()
 {
 
-    std::cout <<"Usage: lifx-configurator [PACKET] [VALUE] [MODIFIER] .... [VALUE]\n";
+    std::cout <<"Usage: lifx-configurator [OPTIONS] .... [VALUE]\n";
     std::cout << "\tReturns packet required to set desired BRIGHTNESS to a LifX™ bulb\n\n";
-    std::cout << "Packet Types:\n\n";
+    std::cout << "Options:\n\n";
+    std::cout << "\t-ip, --ip-address\n";
+    std::cout << "\t\t\t The IP Port of Bulb.\n";
     std::cout << "\t-b, --brightness\n";
     std::cout << "\t\t\t Accepts a BRIGHTNESS value from 0 to 100.\n";
     std::cout << "\t-p, --power\n";
@@ -122,6 +127,8 @@ void lifxHelpMenu()
     std::cout << "\n\nModifiers:\n\n";
     std::cout << "\t-d, --duration\n";
     std::cout << "\t\t\t Accepts a DURATION value in MILLISECONDS\n";
+    std::cout << "\t-po, --packet-only\n";
+    std::cout << "\t\t\t Outputs packet only without sending\n";
 
     std::cout << std::endl;
 }
@@ -136,6 +143,7 @@ int main(int argc, char ** argv)
 {
     messages PacketType = NullType;
     payload_s Payload;
+    bool bPacketOnly = false;
 
     int duration = 1000;
 
@@ -173,9 +181,7 @@ int main(int argc, char ** argv)
                 PacketType = SetPower;
                 int bLevel;
                 sscanf(argv[argi+1], "%d", &bLevel);
-
-                if(bLevel == 1)
-                    Payload.powerLevel = flipHex(n2hexstr(65535,4));
+                if(bLevel == 1) Payload.powerLevel = flipHex(n2hexstr(65535,4));
                 else if(bLevel ==0)
                     Payload.powerLevel = flipHex(n2hexstr(0,4));
                 else
@@ -189,13 +195,25 @@ int main(int argc, char ** argv)
             {
                 sscanf(argv[argi+1], "%d", &duration);
             }
+            // Modifiers
+            if(args.compare("-po") == 0 || args.compare("--packet-only") == 0)
+            {
+                int b;
+                sscanf(argv[argi+1], "%d", &b);
+                bPacketOnly = b == 1 ? true:false;
+            }
+            // Modifiers
+            if(args.compare("-ip") == 0 || args.compare("--ip-address") == 0)
+            {
+                Payload.ip = argv[argi+1];
+            }
         }
 
         if (PacketType == NullType)
         {
             packetType_Error();
             return 0;
-        }    
+        }
 
         Payload.duration = flipHex(n2hexstr(duration,8));
         std::string packet = buildHeader(PacketType);
@@ -228,7 +246,23 @@ int main(int argc, char ** argv)
 
 
         // Prints packet
-        std::cout << packet<<std::endl;
+        if(bPacketOnly)
+            std::cout << packet<<std::endl;
+        else
+        {
+
+            std::string bash_udp = "#/bin/bash \n echo -e \"";
+            bash_udp += packet;
+            bash_udp += "\" > /dev/udp/";
+            bash_udp += Payload.ip;
+            bash_udp += "/";
+            bash_udp += Payload.port;
+
+            system(bash_udp.c_str());
+        }
+
+
+
 
     }
     else

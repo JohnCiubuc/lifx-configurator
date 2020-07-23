@@ -1,4 +1,0 @@
-#!/bin/bash
-#cd "/home/inathero/Scripts/Lifx/PacketCreator/"
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-echo -e "$($DIR/lifx-configurator --brightness $1)" > /dev/udp/192.168.1.230/56700

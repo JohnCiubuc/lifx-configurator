@@ -13,7 +13,4 @@ Currently, only changing the brightness of the bulbs is allowed (I have only a p
 
 # Using the application 
 
-Currently the best approach is to use the `control-lifx` bash file. In the future, `lifx-configurator` will contain that functionality.
-
-Edit the IP address in `control-lifx` to the desired bulb's address. Run `control-lifx` with the desired brightness to change bulb's brightness
-
+Run `lifx-configurator` with the desired bulb's address and settings. A packet will be generated and sent to that bulb
