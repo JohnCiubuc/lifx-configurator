@@ -51,10 +51,12 @@ enum messages
     SetPower
 };
 
-struct payload_s{
+struct payload_s
+{
 
-  std::string brightnessLevel;
-  std::string powerLevel;
+    std::string brightnessLevel;
+    std::string powerLevel;
+    std::string duration;
 };
 // Builds frame header
 // But also builds command
@@ -90,32 +92,36 @@ std::string buildPayload(messages PacketType, payload_s Payload)
         payload += Payload.brightnessLevel;
 
         // Rest of settings for SetColor function
-        payload += "AC0D00040000";
-
+        payload += "AC0D";
         break;
     case SetPower:
         payload += Payload.powerLevel;
-        payload += "00040000";
         break;
     }
+        //Duration
+        payload += Payload.duration;
 
     std::string packet;
-  // Builds packet
-  for(int i = 0; i < payload.length(); i+=2)
-      packet += bytePrepend(std::string(std::string(1,payload[i]) + std::string(1,payload[i+1])));
+    // Builds packet
+    for(int i = 0; i < payload.length(); i+=2)
+        packet += bytePrepend(std::string(std::string(1,payload[i]) + std::string(1,payload[i+1])));
     return packet;
 }
 
 
 void lifxHelpMenu()
 {
-    std::cout <<"Usage: lifx-packet-builder [OPTION] ... [VALUE]\n";
+
+    std::cout <<"Usage: lifx-configurator [PACKET] [VALUE] [MODIFIER] .... [VALUE]\n";
     std::cout << "\tReturns packet required to set desired BRIGHTNESS to a LifX™ bulb\n\n";
-    std::cout << "Options:\n\n";
+    std::cout << "Packet Types:\n\n";
     std::cout << "\t-b, --brightness\n";
-    std::cout << "\t\t\t Accepts a BRIGHTNESS value from 0 to 100.";
+    std::cout << "\t\t\t Accepts a BRIGHTNESS value from 0 to 100.\n";
     std::cout << "\t-p, --power\n";
-    std::cout << "\t\t\t Accepts a POWER value of 0 (off) or 1 (on).";
+    std::cout << "\t\t\t Accepts a POWER value of 0 (off) or 1 (on).\n";
+    std::cout << "\n\nModifiers:\n\n";
+    std::cout << "\t-d, --duration\n";
+    std::cout << "\t\t\t Accepts a DURATION value in MILLISECONDS\n";
 
     std::cout << std::endl;
 }
@@ -131,13 +137,16 @@ int main(int argc, char ** argv)
     messages PacketType = NullType;
     payload_s Payload;
 
+    int duration = 1000;
+
     // Parser:
     if(argc > 1 && argc % 2 == 1)
     {
-        // Gets custom brightness value
         for(int argi = 1; argi < argc; argi += 2)
         {
             std::string args = std::string(argv[argi]);
+
+            // Packets
             if(args.compare("-b") == 0 || args.compare("--brightness") == 0)
             {
                 if (PacketType != NullType)
@@ -165,16 +174,20 @@ int main(int argc, char ** argv)
                 int bLevel;
                 sscanf(argv[argi+1], "%d", &bLevel);
 
-                if(bLevel == 1){
+                if(bLevel == 1)
                     Payload.powerLevel = flipHex(n2hexstr(65535,4));
-                }
-                else if(bLevel ==0){
+                else if(bLevel ==0)
                     Payload.powerLevel = flipHex(n2hexstr(0,4));
-                }
-                else{
+                else
+                {
                     packetType_Error();
                     return 0;
                 }
+            }
+            // Modifiers
+            if(args.compare("-d") == 0 || args.compare("--duration") == 0)
+            {
+                sscanf(argv[argi+1], "%d", &duration);
             }
         }
 
@@ -182,7 +195,9 @@ int main(int argc, char ** argv)
         {
             packetType_Error();
             return 0;
-        }
+        }    
+
+        Payload.duration = flipHex(n2hexstr(duration,8));
         std::string packet = buildHeader(PacketType);
 
         packet += buildPayload(PacketType, Payload);
@@ -218,15 +233,7 @@ int main(int argc, char ** argv)
     }
     else
     {
-        std::cout <<"Usage: lifx-configurator [OPTION] ... [VALUE]\n";
-        std::cout << "\tReturns packet required to set desired BRIGHTNESS to a LifX™ bulb\n\n";
-        std::cout << "Options:\n\n";
-        std::cout << "\t-b, --brightness\n";
-        std::cout << "\t\t\t Accepts a BRIGHTNESS value from 0 to 100.\n";
-        std::cout << "\t-p, --power\n";
-        std::cout << "\t\t\t Accepts a POWER value of 0 (off) or 1 (on).\n";
-
-        std::cout << std::endl;
+        lifxHelpMenu();
         return 0;
     }
     return 0;
